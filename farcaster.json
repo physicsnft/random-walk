@@ -1,8 +1,8 @@
 {
   "name": "Random Walk",
   "description": "Mint a random walk artwork.",
-  "icon": "https://mini-calculator-sigma.vercel.app/calculator-icon.png",
+  "icon": "https://random-walk-sable.vercel.app/calculator-icon.png",
   "frame": {
-    "url": "https://mini-calculator-sigma.vercel.app/"
+    "url": "https://random-walk-sable.vercel.app/"
   }
 }

@@ -7,11 +7,11 @@
   "frame": {
     "version": "1",
     "name": "Random Walk",
-    "iconUrl": "https://mini-calculator-sigma.vercel.app/random-walk-icon.png",
-    "homeUrl": "https://mini-calculator-sigma.vercel.app/",
-    "imageUrl": "https://mini-calculator-sigma.vercel.app/random-walk-image.png",
+    "iconUrl": "https://random-walk-sable.vercel.app/random-walk-icon.png",
+    "homeUrl": "https://random-walk-sable.vercel.app/",
+    "imageUrl": "https://random-walk-sable.vercel.app/random-walk-image.png",
     "buttonTitle": "Open",
-    "splashImageUrl": "https://mini-calculator-sigma.vercel.app/random-walk-splash.png",
+    "splashImageUrl": "https://random-walk-sable.vercel.app/random-walk-splash.png",
     "splashBackgroundColor": "#ffffff"
   }
 }

@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { createWalletClient, custom } from 'viem';
 import { base } from 'viem/chains';
 import { abi as contractAbi } from './abi'; // ABI as abi.ts
+import { sdk } from 'https://esm.sh/@farcaster/frame-sdk';
 
 type Point = { x: number; y: number };
 
