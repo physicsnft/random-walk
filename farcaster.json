@@ -1,6 +1,6 @@
 {
-  "name": "Mini Calculator",
-  "description": "A mobile-style calculator built as a Farcaster Mini App.",
+  "name": "Random Walk",
+  "description": "Mint a random walk artwork.",
   "icon": "https://mini-calculator-sigma.vercel.app/calculator-icon.png",
   "frame": {
     "url": "https://mini-calculator-sigma.vercel.app/"

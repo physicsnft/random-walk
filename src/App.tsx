@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { createWalletClient, custom } from 'viem';
 import { base } from 'viem/chains';
 import { abi as contractAbi } from './abi'; // ABI as abi.ts
@@ -67,10 +67,14 @@ const App = () => {
     if (!points.length) return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) return;
+    if (!canvas) return;
 
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (!ctx) return;
 
     const stepsPerFrame = 20;
     let stepIndex = 0;
@@ -81,8 +85,9 @@ const App = () => {
         const p2 = points[stepIndex + 1];
 
         const hue = (stepIndex / points.length) * 360;
+        if (!ctx) return;
         ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
-
+        
         ctx.beginPath();
         ctx.moveTo(p1.x, p1.y);
         ctx.lineTo(p2.x, p2.y);
