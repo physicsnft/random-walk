@@ -102,6 +102,12 @@ const App = () => {
     }
 
     draw();
+    
+    
+    (async () => {
+      await sdk.actions.ready();
+    })();
+    
   }, [points, hueOffset]);
 
   return (
