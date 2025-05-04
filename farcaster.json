@@ -1,0 +1,8 @@
+{
+  "name": "Mini Calculator",
+  "description": "A mobile-style calculator built as a Farcaster Mini App.",
+  "icon": "https://mini-calculator-sigma.vercel.app/calculator-icon.png",
+  "frame": {
+    "url": "https://mini-calculator-sigma.vercel.app/"
+  }
+}

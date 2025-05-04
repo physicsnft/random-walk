@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Random Walk Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Frame meta (optional for now) -->
+    <meta name="fc:frame" content='{"version":"vNext"}' />
+
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #f9fafb;
+      }
+
+      canvas {
+        border: 1px solid #ddd;
+        background: white;
+        margin-top: 1rem;
+        border-radius: 10px;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 1rem;
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+
+      button:hover {
+        background: #4f46e5;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <h1>🎨 Random Walk</h1>
+    <div style="margin-top: 20px;">
+      <button id="generateBtn">Generate</button>
+      <button id="exportPng">Export PNG</button>
+      <button id="mintBtn">Mint NFT</button>
+    </div>
+
+    <canvas id="walkCanvas" width="400" height="400"></canvas>
+
+    <script type="module">
+      import { sdk } from 'https://esm.sh/@farcaster/frame-sdk';
+
+      
+      let currentPoints = [];
+      let currentGradientHues = null; // { hue1, hueMid, hue2 }
+
+      const canvas = document.getElementById('walkCanvas');
+      const ctx = canvas.getContext('2d');
+      const generateBtn = document.getElementById('generateBtn');
+      
+      function animateSmoothWalk(steps = 1000, stepSize = 6) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        let x = canvas.width / 2;
+        let y = canvas.height / 2;
+        const points = [{ x, y }];
+
+        // Precompute points
+        for (let i = 0; i < steps; i++) {
+          const angle = Math.random() * 2 * Math.PI;
+          x += Math.cos(angle) * stepSize;
+          y += Math.sin(angle) * stepSize;
+          x = Math.max(0, Math.min(canvas.width, x));
+          y = Math.max(0, Math.min(canvas.height, y));
+          points.push({ x, y });
+        }
+
+        // Create gradient
+        const hue1 = Math.floor(Math.random() * 360);
+        const hue2 = Math.floor(Math.random() * 360);
+        const hueMid = Math.floor(Math.random() * 360);
+        
+        currentGradientHues = { hue1, hueMid, hue2 }; // store them for export
+
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, `hsl(${hue1}, 100%, 60%)`);
+        gradient.addColorStop(0.5, `hsl(${hueMid}, 100%, 60%)`);
+        gradient.addColorStop(0.1, `hsl(${hue2}, 100%, 60%)`);
+        
+        currentPoints = points;
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+
+        let i = 1;
+
+        function drawStep() {
+          ctx.beginPath();
+          ctx.moveTo(points[i - 1].x, points[i - 1].y);
+
+          const stepsPerFrame = 10;
+          for (let j = 0; j < stepsPerFrame && i < points.length - 1; j++, i++) {
+            const midX = (points[i].x + points[i + 1].x) / 2;
+            const midY = (points[i].y + points[i + 1].y) / 2;
+            ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
+          }
+
+          ctx.stroke();
+
+          if (i < points.length - 1) {
+            requestAnimationFrame(drawStep);
+          }
+        }
+
+        drawStep();
+      }
+      
+      function exportPNG(points, gradient, scale = 4) {
+        const exportCanvas = document.createElement('canvas');
+        const size = canvas.width * scale;
+        exportCanvas.width = size;
+        exportCanvas.height = size;
+        const exportCtx = exportCanvas.getContext('2d');
+
+        // Scale all points to match new canvas size
+        const scaledPoints = points.map(p => ({
+          x: p.x * scale,
+          y: p.y * scale
+        }));
+        
+        // use the same gradient as in the canvas
+        const { hue1, hueMid, hue2 } = currentGradientHues;
+
+        const exportGradient = exportCtx.createLinearGradient(0, 0, size, size);
+        exportGradient.addColorStop(0, `hsl(${hue1}, 100%, 60%)`);
+        exportGradient.addColorStop(0.5, `hsl(${hueMid}, 100%, 60%)`);
+        exportGradient.addColorStop(1, `hsl(${hue2}, 100%, 60%)`);
+
+        exportCtx.strokeStyle = exportGradient;
+
+
+        exportCtx.lineWidth = 2 * scale;
+        exportCtx.beginPath();
+        exportCtx.moveTo(scaledPoints[0].x, scaledPoints[0].y);
+
+        for (let i = 1; i < scaledPoints.length - 1; i++) {
+          const midX = (scaledPoints[i].x + scaledPoints[i + 1].x) / 2;
+          const midY = (scaledPoints[i].y + scaledPoints[i + 1].y) / 2;
+          exportCtx.quadraticCurveTo(scaledPoints[i].x, scaledPoints[i].y, midX, midY);
+        }
+
+        exportCtx.stroke();
+
+        // Trigger download
+        const link = document.createElement('a');
+        link.href = exportCanvas.toDataURL('image/png');
+        link.download = 'random-walk.png';
+        link.click();
+      }
+      
+      async function uploadToWeb3Storage(file) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("https://api.nft.storage/upload", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer 9eacfa05.6ad8bb1bc8e441679b4dbdeca237e155`,
+          },
+          body: file,
+        });
+
+        const data = await res.json();
+        return `https://ipfs.io/ipfs/${data.value.cid}`;
+      }
+
+      // GENERATION
+      generateBtn.addEventListener('click', () => {
+        animateSmoothWalk(); 
+      });
+      
+      animateSmoothWalk(); // initial load
+
+      // EXPORT
+      document.getElementById('exportPng').addEventListener('click', () => {
+        exportPNG(currentPoints, currentGradientHues, 4);
+      });
+
+      // MINT
+      const mintBtn = document.getElementById('mintBtn');
+
+      mintBtn.addEventListener('click', async () => {
+        const canvas = document.getElementById('canvas');
+        canvas.toBlob(async (blob) => {
+          if (!blob) return alert("Failed to get image blob");
+
+          const file = new File([blob], "random-walk.png", { type: "image/png" });
+
+          // upload to storage service 
+          const imageUrl = await uploadToWeb3Storage(file); // You'll need to implement this or use nft.storage/IPFS
+          await mintNFT(imageUrl);
+        }, 'image/png');
+      });
+
+      (async () => {
+        await sdk.actions.ready();
+      })();
+    </script>
+    
+    <script src="https://unpkg.com/@thirdweb-dev/sdk@latest/dist/thirdweb.umd.min.js"></script>
+    <script>
+      const { ThirdwebSDK } = window.thirdweb;
+
+      const sdk = new ThirdwebSDK("base"); // 'base' = Base mainnet
+      let contract;
+
+      async function connectWallet() {
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        const signer = sdk.getSigner();
+        contract = await sdk.getContract("0xDCf417A8416CA83d20652987f04c5341223dd9f1", "nft-collection");
+        return signer;
+      }
+
+      async function mintNFT(imageUrl, name = "Random Walk", description = "Generated walk") {
+        const signer = await connectWallet();
+        const tx = await contract.mintTo(signer.address, {
+          name,
+          description,
+          image: imageUrl, // Should be a public URL or IPFS link
+        });
+        alert("Minted NFT successfully!");
+        console.log("NFT Minted:", tx);
+      }
+    </script>
+
+
+  </body>
+</html>
