@@ -6,7 +6,7 @@ import { sdk } from '@farcaster/frame-sdk';
 
 type Point = { x: number; y: number };
 
-const CANVAS_SIZE = 400;
+const CANVAS_SIZE = 300;
 const STEPS = 2000;
 const CONTRACT_ADDRESS = '0xDCf417A8416CA83d20652987f04c5341223dd9f1';
 
@@ -59,7 +59,7 @@ const App = () => {
     const path: Point[] = [];
     let x = CANVAS_SIZE / 2;
     let y = CANVAS_SIZE / 2;
-    let scale = 2;
+    let scale = 1;
     for (let i = 0; i < STEPS; i++) {
       const angle = Math.random() * 2 * Math.PI;
       x += scale * Math.cos(angle) * 2;
