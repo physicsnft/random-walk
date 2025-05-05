@@ -46,6 +46,13 @@ const App = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [points, setPoints] = useState<Point[]>([]);
   const [hueOffset, setHueOffset] = useState(Math.floor(Math.random() * 360));
+  
+  
+  useEffect(() => {
+    (async () => {
+        await sdk.actions.ready();
+    })();
+  }, []);
 
   // Generate a new random walk
   const generateRandomWalk = () => {
@@ -103,11 +110,6 @@ const App = () => {
     }
 
     draw();
-    
-    
-    (async () => {
-      await sdk.actions.ready();
-    })();
     
   }, [points, hueOffset]);
 

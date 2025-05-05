@@ -8,10 +8,11 @@
     "version": "1",
     "name": "Random Walk",
     "iconUrl": "https://random-walk-sable.vercel.app/random-walk-icon.png",
-    "homeUrl": "https://random-walk-sable.vercel.app/",
+    "homeUrl": "https://random-walk-sable.vercel.app",
     "imageUrl": "https://random-walk-sable.vercel.app/random-walk-image.png",
     "buttonTitle": "Open",
     "splashImageUrl": "https://random-walk-sable.vercel.app/random-walk-splash.png",
-    "splashBackgroundColor": "#ffffff"
+    "splashBackgroundColor": "#ffffff",
+    "webhookUrl": "https://random-walk-sable.vercel.app/api/webhook"
   }
 }
