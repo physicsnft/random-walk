@@ -11,13 +11,6 @@ import "./index.css";
 
 const queryClient = new QueryClient();
 
-const config = createConfig({
-  chains: [base],
-  transports: {
-    [base.id]: http(),
-  },
-});
-
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <WagmiConfig config={config}>
