@@ -16,7 +16,7 @@ interface CollectButtonProps {
   isMinting: boolean;
 }
 
-export function CollectButton({ priceEth, onCollect, onError, isMinting }: CollectButtonProps) {
+export function CollectButton({ onCollect, onError, isMinting }: CollectButtonProps) {
   const { isConnected, address } = useAccount();
   const { connect } = useConnect();
   const { writeContractAsync, isPending: isWriting } = useWriteContract();
