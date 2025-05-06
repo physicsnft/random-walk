@@ -11,7 +11,6 @@ import { AnimatedBorder } from "./AnimatedBorder";
 
 interface CollectButtonProps {
   timestamp?: number;
-  priceEth: string;
   onCollect: () => void;
   onError: (error: string | undefined) => void;
   isMinting: boolean;

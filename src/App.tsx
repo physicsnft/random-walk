@@ -1,7 +1,4 @@
 import { useRef, useState, useEffect } from 'react';
-import { createWalletClient, custom } from 'viem';
-import { base } from 'viem/chains';
-import { abi as contractAbi } from './abi'; // ABI as abi.ts
 import { sdk } from '@farcaster/frame-sdk';
 import { CollectButton } from "./components/CollectButton";
 
@@ -9,7 +6,6 @@ type Point = { x: number; y: number };
 
 const CANVAS_SIZE = 300;
 const STEPS = 2000;
-const CONTRACT_ADDRESS = '0xDCf417A8416CA83d20652987f04c5341223dd9f1';
 
 const App = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
