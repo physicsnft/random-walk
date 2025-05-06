@@ -3,6 +3,7 @@ import { createWalletClient, custom } from 'viem';
 import { base } from 'viem/chains';
 import { abi as contractAbi } from './abi'; // ABI as abi.ts
 import { sdk } from '@farcaster/frame-sdk';
+import { CollectButton } from "./components/CollectButton";
 
 type Point = { x: number; y: number };
 
@@ -121,9 +122,16 @@ const App = () => {
         width={CANVAS_SIZE}
         height={CANVAS_SIZE}
       ></canvas>
-      <div>
-        <button onClick={generateRandomWalk}>Generate</button>
-        <button onClick={mintNFT}>Mint</button>
+      <div className="button-row">
+        <button onClick={generateRandomWalk} className="app-button">
+          Generate
+        </button>
+        <CollectButton
+          priceEth="0.001"
+          isMinting={true}
+          onCollect={() => console.log("Mint successful")}
+          onError={(err) => console.error("Mint failed", err)}
+        />
       </div>
     </div>
   );
