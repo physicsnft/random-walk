@@ -5,7 +5,6 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import { WagmiConfig, createConfig, http } from "wagmi";
 import { base } from "wagmi/chains";
-import { publicClient } from "viem";
 
 import "./index.css";
 

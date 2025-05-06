@@ -11,38 +11,6 @@ const CANVAS_SIZE = 300;
 const STEPS = 2000;
 const CONTRACT_ADDRESS = '0xDCf417A8416CA83d20652987f04c5341223dd9f1';
 
-const mintNFT = async () => {
-  try {
-    const provider = (window as any).ethereum;
-
-    if (!provider || !provider.isFarcasterSigner) {
-      alert('Farcaster wallet not available');
-      return;
-    }
-
-    const client = createWalletClient({
-      chain: base,
-      transport: custom(provider),
-    });
-
-    const [account] = await client.getAddresses();
-
-    const txHash = await client.writeContract({
-      address: CONTRACT_ADDRESS,
-      abi: contractAbi,
-      functionName: 'mintTo', // or your function name
-      args: [account],        // depends on your contract, this is for Thirdweb-style
-      account,
-    });
-
-    alert(`Minted! Transaction Hash: ${txHash}`);
-  } catch (err: any) {
-    console.error('Mint failed:', err);
-    alert('Minting failed: ' + err.message);
-  }
-};
-
-
 const App = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [points, setPoints] = useState<Point[]>([]);
@@ -127,10 +95,9 @@ const App = () => {
           Generate
         </button>
         <CollectButton
-          priceEth="0.001"
           isMinting={true}
           onCollect={() => console.log("Mint successful")}
-          onError={(err) => console.error("Mint failed", err)}
+          onError={(err: unknown) => console.error("Mint failed", err)}
         />
       </div>
     </div>
