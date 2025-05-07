@@ -2097,4 +2097,5 @@ export const embedconfig = {
 export const config = {
   ...mintMetadata,
   contract: contractConfig,
+  embed: embedConfig,
 } as const;
