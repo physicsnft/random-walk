@@ -2078,7 +2078,7 @@ export const contractConfig = {
 /**
  * Farcaster Frame Embed Configuration
  */
-export const embedconfig = {
+export const embedConfig = {
   version: "next",
   imageurl: "https://random-walk-sable.vercel.app/random-walk-image.png",
   button: {
