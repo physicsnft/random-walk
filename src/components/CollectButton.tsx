@@ -9,6 +9,8 @@ import { isUserRejectionError } from "../lib/errors";
 import { Button } from "./Button";
 import { AnimatedBorder } from "./AnimatedBorder";
 
+import { uploadImageAndMetadata } from "../utils/uploadToIPFS"; 
+
 interface CollectButtonProps {
   timestamp?: number;
   onCollect: () => void;
@@ -40,43 +42,74 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
     }
   }, [isSuccess, onCollect]);
 
-  const handleClick = async () => {
-    try {
-      if (!isMinting) {
-        sdk.actions.addFrame();
-        return;
-      }
-
-      setHash(undefined);
-      successHandled.current = false;
-
-      if (!isConnected || !address) {
-        connect({ connector: farcasterFrame() });
-        return;
-      }
-
-      setIsLoadingTxData(true);
-
-      const hash = await writeContractAsync({
-        address: contractConfig.address,
-        abi: contractConfig.abi,
-        functionName: "vectorMint721",
-        args: [BigInt(contractConfig.vectorId), 1n, address],
-        value: parseEther(mintMetadata.priceEth),
-        chainId: contractConfig.chain.id,
-      });
-
-      setHash(hash);
-    } catch (error) {
-      if (!isUserRejectionError(error)) {
-        onError(error instanceof Error ? error.message : "Something went wrong.");
-      }
-      setHash(undefined);
-      successHandled.current = false;
-    } finally {
-      setIsLoadingTxData(false);
+const handleClick = async () => {
+  try {
+    if (!isMinting) {
+      sdk.actions.addFrame();
+      return;
     }
-  };
+
+    setHash(undefined);
+    successHandled.current = false;
+
+    if (!isConnected || !address) {
+      connect({ connector: farcasterFrame() });
+      return;
+    }
+
+    // STEP 1: Get canvas and convert to image blob
+    const canvas = document.querySelector('canvas') as HTMLCanvasElement | null;
+    if (!canvas) {
+      onError("Canvas not found.");
+      return;
+    }
+
+    setIsLoadingTxData(true);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        onError("Failed to get canvas image.");
+        setIsLoadingTxData(false);
+        return;
+      }
+
+      try {
+        // STEP 2: Upload to IPFS
+        const metadataUrl = await uploadImageAndMetadata(blob);
+        console.log("Metadata uploaded:", metadataUrl);
+
+        // STEP 3: Send mint transaction
+        const hash = await writeContractAsync({
+          address: contractConfig.address,
+          abi: contractConfig.abi,
+          functionName: "mint", // mint function
+          args: [
+            address,
+            1n,
+            metadataUrl, // use the IPFS metadata link here
+            "0x"], 
+          value: parseEther(mintMetadata.priceEth),
+          chainId: contractConfig.chain.id,
+        });
+
+        setHash(hash);
+      } catch (error) {
+        if (!isUserRejectionError(error)) {
+          onError(error instanceof Error ? error.message : "Something went wrong.");
+        }
+        setHash(undefined);
+        successHandled.current = false;
+        setIsLoadingTxData(false);
+      }
+    }, 'image/png');
+    
+  } catch (error) {
+    onError(error instanceof Error ? error.message : "Something went wrong.");
+    setHash(undefined);
+    successHandled.current = false;
+    setIsLoadingTxData(false);
+  }
+};
 
   return (
     <div className="sticky bottom-0 left-0 right-0 bg-card border-t border-border">
