@@ -1,7 +1,7 @@
 // src/utils/uploadToIPFS.ts
 import { NFTStorage, File } from 'nft.storage'
-console.log("Token preview:", import.meta.env.VITE_NFT_STORAGE_TOKEN?.slice(0, 6));
-const client = new NFTStorage({ token: import.meta.env.VITE_NFT_STORAGE_TOKEN });
+
+const client = new NFTStorage({ token: import.meta.env.VITE_NFT_STORAGE_TOKEN,});
 
 export async function uploadImageAndMetadata(blob: Blob) {
   const metadata = await client.store({
