@@ -1,5 +1,4 @@
 // src/utils/uploadToIPFS.ts
-
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 
 const storage = new ThirdwebStorage({
@@ -9,24 +8,22 @@ const storage = new ThirdwebStorage({
 
 export async function uploadImageAndMetadata(blob: Blob): Promise<string> {
   try {
-    // Read blob into an ArrayBuffer
-    const arrayBuffer = await blob.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Use a File directly instead of Buffer
+    const file = new File([blob], "walk.png", { type: "image/png" });
 
-    // Upload the image file to IPFS
-    const imageUri = await storage.upload(buffer, {
+    // Upload image to IPFS
+    const imageUri = await storage.upload(file, {
       uploadWithGatewayUrl: true,
       uploadWithoutDirectory: true,
     });
 
-    // Create ERC721-compatible metadata
+    // Create metadata
     const metadata = {
       name: "Random Walk NFT",
-      description: "A unique generative art piece created from a random walk.",
+      description: "A unique generative art piece.",
       image: imageUri,
     };
 
-    // Upload metadata and return its IPFS URI
     const metadataUri = await storage.upload(metadata);
     console.log("Uploaded metadata:", metadataUri);
 
