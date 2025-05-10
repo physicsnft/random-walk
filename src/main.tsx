@@ -4,6 +4,7 @@ import App from "./App";
 import "./index.css";
 
 import { ThirdwebProvider } from "thirdweb/react";
+import { createThirdwebClient } from "thirdweb";
 
 import { WagmiProvider } from "wagmi";
 import { config as wagmiConfig } from "./wagmi";
