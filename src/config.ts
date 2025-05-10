@@ -1,5 +1,20 @@
 import type { Abi, Address } from "viem";
 import { base } from "viem/chains";
+import {
+  createThirdwebClient,
+  getContract,
+} from "thirdweb";
+import { defineChain } from "thirdweb/chains";
+
+export const client = createThirdwebClient({
+  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID, 
+});
+
+export const contract = getContract({
+  client,
+  chain: defineChain(8453), // ✅ Base mainnet
+  address: "0xDCf417A8416CA83d20652987f04c5341223dd9f1",
+});
 
 /**
  * NFT Metadata Configuration
@@ -11,7 +26,7 @@ export const mintMetadata = {
     fid: 311446,
   },
   chain: "Base",
-  priceEth: "0.0004",
+  priceEth: "0.0001",
   startsAt: null,
   endsAt: null,
   isMinting: true,

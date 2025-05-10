@@ -3,6 +3,9 @@ import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 import { useEffect, useRef, useState } from "react";
 import { parseEther } from "viem";
 import { useAccount, useConnect, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { prepareContractCall } from "thirdweb";
+import { useSendTransaction } from "thirdweb/react";
+import { contract } from "../config"; 
 
 import { contractConfig, mintMetadata } from "../config";
 import { isUserRejectionError } from "../lib/errors";
@@ -32,6 +35,7 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
   const isPending = isLoadingTxData || isWriting || isConfirming;
 
   const successHandled = useRef(false);
+  const { mutate: sendTransaction } = useSendTransaction();
 
   useEffect(() => {
     if (isSuccess && !successHandled.current) {
@@ -78,21 +82,22 @@ const handleClick = async () => {
         const metadataUrl = await uploadImageAndMetadata(blob);
         console.log("Metadata uploaded:", metadataUrl);
 
-        // STEP 3: Send mint transaction
-        const hash = await writeContractAsync({
-          address: contractConfig.address,
-          abi: contractConfig.abi,
-          functionName: "mint", // mint function
-          args: [
-            address,
-            1n,
-            metadataUrl, // use the IPFS metadata link here
-            "0x"], 
+        // STEP 3: Prepare mint transaction
+        const transaction = prepareContractCall({
+          contract,
+          method: "function mint(address to, uint256 amount, string baseURI, bytes data) payable",
+          params: [
+            address,         // ✅ to
+            1n,              // ✅ amount
+            metadataUrl,     // ✅ baseURI
+            "0x"             // ✅ data
+          ],
           value: parseEther(mintMetadata.priceEth),
-          chainId: contractConfig.chain.id,
         });
 
-        setHash(hash);
+        // STEP 4: Send the transaction
+        await sendTransaction(transaction);
+        console.log("✅ Mint successful");
       } catch (error) {
         if (!isUserRejectionError(error)) {
           onError(error instanceof Error ? error.message : "Something went wrong.");
