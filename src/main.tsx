@@ -11,7 +11,8 @@ import "./index.css";
 import { Buffer } from "buffer";
 
 // Thirdweb
-import { ThirdwebProvider, createThirdwebClient } from "thirdweb/react";
+import { createThirdwebClient } from "thirdweb";
+import { ThirdwebProvider } from "thirdweb/react";
 import { defineChain } from "thirdweb/chains";
 
 window.Buffer = Buffer;
