@@ -2,7 +2,7 @@ import { useState } from "react";
 import { parseEther } from "viem";
 import { useAccount, useConnect, useWalletClient } from "wagmi";
 import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
-import { contract } from "../config";
+import { contract } from "../config"; 
 
 import { isUserRejectionError } from "../lib/errors";
 import { Button } from "./Button";
