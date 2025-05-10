@@ -24,21 +24,7 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
   const [isLoadingTxData, setIsLoadingTxData] = useState(false);
   const isPending = isLoadingTxData;
 
-  const { mutate: sendTransaction } = useSendTransaction({
-    onSuccess: (txResult) => {
-      console.log("✅ Mint transaction sent!", txResult);
-      onCollect();
-      setIsLoadingTxData(false);
-    },
-    onError: (err) => {
-      console.error("❌ Mint failed:", err);
-      const msg = err instanceof Error ? err.message : "Transaction failed";
-      if (!isUserRejectionError(err)) {
-        onError(msg);
-      }
-      setIsLoadingTxData(false);
-    },
-  });
+  const { mutateAsync: sendTransaction } = useSendTransaction();
 
   const handleClick = async () => {
     try {
@@ -72,13 +58,19 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
             contract,
             method: "function mint(address to, uint256 amount, string baseURI, bytes data) payable",
             params: [address, 1n, metadataUrl, "0x"],
-            value: parseEther("0.001"), // Replace with your actual mint price
+            value: parseEther("0.001"), // Replace with your mint price
           });
 
-          sendTransaction(transaction); // no await
-        } catch (err) {
-          console.error("❌ Upload or transaction setup failed:", err);
-          onError("Something went wrong before sending transaction.");
+          const result = await sendTransaction(transaction);
+          console.log("✅ Mint transaction sent!", result);
+          onCollect();
+        } catch (err: unknown) {
+          console.error("❌ Mint failed:", err);
+          const msg = err instanceof Error ? err.message : "Transaction failed";
+          if (!isUserRejectionError(err)) {
+            onError(msg);
+          }
+        } finally {
           setIsLoadingTxData(false);
         }
       }, "image/png");
