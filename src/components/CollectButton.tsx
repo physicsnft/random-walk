@@ -1,8 +1,5 @@
-import { sdk } from "@farcaster/frame-sdk";
-import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 import { useEffect, useRef, useState } from "react";
 import { parseEther } from "viem";
-import { useAccount, useConnect, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { prepareContractCall } from "thirdweb";
 import { useSendTransaction } from "thirdweb/react";
 import { contract } from "../config"; 
@@ -23,15 +20,14 @@ interface CollectButtonProps {
 export function CollectButton({ onCollect, onError, isMinting }: CollectButtonProps) {
   const { isConnected, address } = useAccount();
   const { connect } = useConnect();
-  const { writeContractAsync, isPending: isWriting } = useWriteContract();
   const [hash, setHash] = useState<`0x${string}`>();
   const [isLoadingTxData, setIsLoadingTxData] = useState(false);
 
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
-
-  const isPending = isLoadingTxData || isWriting || isConfirming;
+  
+  const isPending = isLoadingTxData || isConfirming;
 
   const successHandled = useRef(false);
   const { mutate: sendTransaction } = useSendTransaction();
