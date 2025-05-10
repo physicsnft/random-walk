@@ -7,7 +7,6 @@ import { prepareContractCall } from "thirdweb";
 import { useSendTransaction } from "thirdweb/react";
 import { contract } from "../config"; 
 
-import { contractConfig, mintMetadata } from "../config";
 import { isUserRejectionError } from "../lib/errors";
 import { Button } from "./Button";
 import { AnimatedBorder } from "./AnimatedBorder";
