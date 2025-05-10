@@ -70,21 +70,21 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
             value: parseEther("0.001"), 
           });
           console.log("Sending tx with args:", transaction);
-          const receipt = await sendTransaction(transaction);
-          console.log("✅ Transaction confirmed:", receipt);
-          if (!receipt) {
-            console.error("❌ Transaction failed or was rejected");
-            onError("Transaction failed or was rejected");
-            setIsLoadingTxData(false);
-          return;
-        }
+          
+          const { mutate: sendTransaction } = useSendTransaction({
+            onSuccess: (txResult) => {
+              console.log("✅ Mint transaction sent!", txResult);
+              onCollect();
+              setIsLoadingTxData(false);
+            },
+            onError: (err) => {
+              console.error("❌ Mint failed:", err);
+              onError("Transaction failed or was rejected");
+              setIsLoadingTxData(false);
+            },
+          });
 
-console.log("✅ Transaction sent, hash:", result);
-onCollect();
-          
-          
-          console.log("✅ Mint successful");
-          onCollect();
+          sendTransaction(transaction);
         } catch (error) {
           if (!isUserRejectionError(error)) {
             onError(error instanceof Error ? error.message : "Something went wrong.");
