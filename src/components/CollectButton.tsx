@@ -59,8 +59,9 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
             params: [address, 1n, metadataUrl, "0x"],
             value: parseEther("0.001"), 
           });
-
-          await sendTransaction(transaction);
+          console.log("Sending tx with args:", transaction);
+          const receipt = await sendTransaction(transaction);
+          console.log("✅ Transaction confirmed:", receipt);
           console.log("✅ Mint successful");
           onCollect();
         } catch (error) {
@@ -88,7 +89,7 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
           </AnimatedBorder>
         ) : (
           <Button className="w-full" onClick={handleClick} disabled={isPending}>
-            {!isConnected && isMinting ? "Connect Wallet" : isMinting ? "Collect" : "Unavailable"}
+            {!isConnected && isMinting ? "Connect" : isMinting ? "Collect" : "Unavailable"}
           </Button>
         )}
       </div>
