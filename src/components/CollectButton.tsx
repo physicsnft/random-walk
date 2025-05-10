@@ -52,6 +52,16 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
         try {
           const metadataUrl = await uploadImageAndMetadata(blob);
           console.log("Metadata uploaded:", metadataUrl);
+          
+          const tx = prepareContractCall({
+            contract,
+            method: "function mint(address to, uint256 amount, string baseURI, bytes data) payable",
+            params: [address, 1n, "ipfs://test", "0x"],
+            value: parseEther("0.001"),
+          });
+
+          const result = await sendTransaction(tx);
+          console.log("Test mint result:", result);
 
           const transaction = prepareContractCall({
             contract,
@@ -62,6 +72,17 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
           console.log("Sending tx with args:", transaction);
           const receipt = await sendTransaction(transaction);
           console.log("✅ Transaction confirmed:", receipt);
+          if (!receipt) {
+            console.error("❌ Transaction failed or was rejected");
+            onError("Transaction failed or was rejected");
+            setIsLoadingTxData(false);
+          return;
+        }
+
+console.log("✅ Transaction sent, hash:", result);
+onCollect();
+          
+          
           console.log("✅ Mint successful");
           onCollect();
         } catch (error) {
