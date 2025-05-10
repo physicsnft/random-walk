@@ -2,8 +2,6 @@ import { useState } from "react";
 import { parseEther } from "viem";
 import { useAccount, useConnect, useWalletClient } from "wagmi";
 import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
-import { prepareContractCall } from "thirdweb";
-import { useSendTransaction } from "thirdweb/react";
 import { contract } from "../config";
 
 import { isUserRejectionError } from "../lib/errors";
@@ -24,8 +22,6 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
 
   const [isLoadingTxData, setIsLoadingTxData] = useState(false);
   const isPending = isLoadingTxData;
-
-  const { mutateAsync: sendTransaction } = useSendTransaction();
 
   const handleClick = async () => {
     try {
@@ -60,15 +56,13 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
           const metadataUrl = await uploadImageAndMetadata(blob);
           console.log("Metadata uploaded:", metadataUrl);
 
-          const transaction = prepareContractCall({
-            contract,
+          const result = await contract.write({
             method: "function mint(address to, uint256 amount, string baseURI, bytes data) payable",
             params: [address, 1n, metadataUrl, "0x"],
-            value: parseEther("0.001"), // Mint price
-            account: walletClient.account, // 👈 Fix for "No active account"
+            value: parseEther("0.001"),
+            account: walletClient.account, // ✅ signer injected here
           });
 
-          const result = await sendTransaction(transaction);
           console.log("✅ Mint transaction sent!", result);
           onCollect();
         } catch (err: unknown) {
