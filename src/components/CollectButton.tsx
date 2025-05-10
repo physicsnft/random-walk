@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { parseEther } from "viem";
 import { prepareContractCall } from "thirdweb";
 import { useSendTransaction } from "thirdweb/react";
-import { contract } from "../config"; 
+import { contract, mintMetadata } from "../config"; 
 
 import { isUserRejectionError } from "../lib/errors";
 import { Button } from "./Button";
@@ -18,14 +18,8 @@ interface CollectButtonProps {
 }
 
 export function CollectButton({ onCollect, onError, isMinting }: CollectButtonProps) {
-  const { isConnected, address } = useAccount();
-  const { connect } = useConnect();
   const [hash, setHash] = useState<`0x${string}`>();
   const [isLoadingTxData, setIsLoadingTxData] = useState(false);
-
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
   
   const isPending = isLoadingTxData || isConfirming;
 
@@ -44,7 +38,6 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
 const handleClick = async () => {
   try {
     if (!isMinting) {
-      sdk.actions.addFrame();
       return;
     }
 
@@ -52,7 +45,7 @@ const handleClick = async () => {
     successHandled.current = false;
 
     if (!isConnected || !address) {
-      connect({ connector: farcasterFrame() });
+      //connect({ connector: farcasterFrame() });
       return;
     }
 
