@@ -1,33 +1,24 @@
-// src/main.tsx
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { WagmiProvider } from "wagmi";
-
 import App from "./App";
-import { config } from "./wagmi";
-
 import "./index.css";
-import { Buffer } from "buffer";
 
-// Thirdweb
-import { createThirdwebClient } from "thirdweb";
 import { ThirdwebProvider } from "thirdweb/react";
-import { defineChain } from "thirdweb/chains";
+import { thirdwebConfig } from "./thirdweb";
 
+import { WagmiProvider } from "wagmi";
+import { config as wagmiConfig } from "./wagmi";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import { Buffer } from "buffer";
 window.Buffer = Buffer;
 
-// Initialize clients
 const queryClient = new QueryClient();
-const thirdwebClient = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID,
-});
-const chain = defineChain(8453); // Base mainnet
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <WagmiProvider config={config}>
-      <ThirdwebProvider client={thirdwebClient} activeChain={chain}>
+    <WagmiProvider config={wagmiConfig}>
+      <ThirdwebProvider config={thirdwebConfig}>
         <QueryClientProvider client={queryClient}>
           <App />
         </QueryClientProvider>
