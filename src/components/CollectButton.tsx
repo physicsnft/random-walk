@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { parseEther } from "viem";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount, useConnect, useWalletClient } from "wagmi";
 import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 import { prepareContractCall } from "thirdweb";
 import { useSendTransaction } from "thirdweb/react";
@@ -20,6 +20,7 @@ interface CollectButtonProps {
 export function CollectButton({ onCollect, onError, isMinting }: CollectButtonProps) {
   const { isConnected, address } = useAccount();
   const { connect } = useConnect();
+  const { data: walletClient } = useWalletClient();
 
   const [isLoadingTxData, setIsLoadingTxData] = useState(false);
   const isPending = isLoadingTxData;
@@ -32,6 +33,11 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
 
       if (!isConnected || !address) {
         connect({ connector: farcasterFrame() });
+        return;
+      }
+
+      if (!walletClient) {
+        onError("Wallet client not available.");
         return;
       }
 
@@ -58,7 +64,8 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
             contract,
             method: "function mint(address to, uint256 amount, string baseURI, bytes data) payable",
             params: [address, 1n, metadataUrl, "0x"],
-            value: parseEther("0.001"), // Replace with your mint price
+            value: parseEther("0.001"), // Mint price
+            account: walletClient.account, // 👈 Fix for "No active account"
           });
 
           const result = await sendTransaction(transaction);
