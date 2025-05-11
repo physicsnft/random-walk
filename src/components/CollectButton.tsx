@@ -87,7 +87,7 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
           const metadataUrl = await uploadImageAndMetadata(blob);
           console.log("✅ Metadata uploaded:", metadataUrl);
 
-          const tx = await writeContractAsync({
+          const txHash = await writeContractAsync({
             address: contractAddress,
             abi: contractConfig.abi,
             functionName: "safeMint",
