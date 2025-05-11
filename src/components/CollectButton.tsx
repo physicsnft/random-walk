@@ -62,6 +62,16 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
         connect({ connector: injected() });
         return;
       }
+      
+      function ConnectTest() {
+        const { connect } = useConnect();
+
+        return (
+          <button onClick={() => connect({ connector: injected() })}>
+            Connect MetaMask
+          </button>
+        );
+      }
 
       if (!walletClient) {
         onError("Wallet client not available.");
