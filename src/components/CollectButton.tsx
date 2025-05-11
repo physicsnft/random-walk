@@ -9,12 +9,13 @@ import {
 } from "wagmi";
 import { parseEther } from "viem";
 import type { Log } from "viem";
-import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
+//import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 import { contractConfig } from "../config";
 import { uploadImageAndMetadata } from "../utils/uploadToIPFS";
 import { Button } from "./Button";
 import { AnimatedBorder } from "./AnimatedBorder";
 import { isUserRejectionError } from "../lib/errors";
+import { injected } from "wagmi/connectors";
 
 type Address = `0x${string}`;
 
@@ -57,7 +58,8 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
       if (!isMinting) return;
 
       if (!isConnected || !address) {
-        connect({ connector: farcasterFrame() });
+        //connect({ connector: farcasterFrame() });
+        connect({ connector: injected() });
         return;
       }
 
