@@ -95,9 +95,9 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
 
           console.log("✅ Mint sent. Waiting for confirmation...");
           
-          console.log("txHash:", tx);
+          console.log("txHash:", txHash);
 
-          const txInfo = await publicClient.getTransaction({ hash: tx });
+          const txInfo = await publicClient.getTransaction({ hash: txHash });
           console.log("txInfo:", txInfo);
 
           const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
