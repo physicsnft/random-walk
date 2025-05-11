@@ -1,8 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { sdk } from '@farcaster/frame-sdk';
 import { CollectButton, ConnectTest } from "./components/CollectButton";
-import { useConnect } from "wagmi";
-import { injected } from "wagmi/connectors";
 
 type Point = { x: number; y: number };
 
