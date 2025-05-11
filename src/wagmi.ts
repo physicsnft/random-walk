@@ -4,7 +4,7 @@ import { http, createConfig } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
 
 export const config = createConfig({
-  chains: [base, mainnet],
+  //chains: [base, mainnet],
   chains: [baseSepolia],
   connectors: [farcasterFrame()],
   transports: {
