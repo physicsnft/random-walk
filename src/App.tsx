@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { sdk } from '@farcaster/frame-sdk';
-import { CollectButton } from "./components/CollectButton";
+import { CollectButton, ConnectTest } from "./components/CollectButton";
 import { useConnect } from "wagmi";
 import { injected } from "wagmi/connectors";
 
@@ -84,27 +84,6 @@ const App = () => {
     draw();
     
   }, [points, hueOffset]);
-  
-  export function ConnectTest() {
-  const { connect } = useConnect();
-
-  return (
-    <button
-      onClick={() => connect({ connector: injected() })}
-      style={{
-        padding: "0.5rem 1rem",
-        background: "#333",
-        color: "#fff",
-        border: "none",
-        borderRadius: "8px",
-        marginTop: "1rem",
-        cursor: "pointer",
-      }}
-    >
-      Connect MetaMask
-    </button>
-  );
-}
 
   return (
     <div className="container">

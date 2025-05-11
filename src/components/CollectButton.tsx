@@ -25,6 +25,28 @@ interface CollectButtonProps {
   isMinting: boolean;
 }
 
+
+export function ConnectTest() {
+  const { connect } = useConnect();
+
+  return (
+    <button
+      onClick={() => connect({ connector: injected() })}
+      style={{
+        padding: "0.5rem 1rem",
+        background: "#333",
+        color: "#fff",
+        border: "none",
+        borderRadius: "8px",
+        marginTop: "1rem",
+        cursor: "pointer",
+      }}
+    >
+      Connect MetaMask
+    </button>
+  );
+}
+
 export function CollectButton({ onCollect, onError, isMinting }: CollectButtonProps) {
   const { isConnected, address } = useAccount();
   const { connect } = useConnect();
