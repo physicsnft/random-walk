@@ -14,6 +14,7 @@ import { isUserRejectionError } from "../lib/errors";
 import { Button } from "./Button";
 import { AnimatedBorder } from "./AnimatedBorder";
 import { uploadImageAndMetadata } from "../utils/uploadToIPFS";
+import type { Address } from "viem";
 
 interface CollectButtonProps {
   onCollect: () => void;
@@ -29,17 +30,19 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
 
   const [isLoadingTxData, setIsLoadingTxData] = useState(false);
   const isPending = isLoadingTxData;
+  
+  const contractAddress: Address = contractConfig.address as Address;
 
   // ✅ Read total supply
   const { data: totalMinted } = useReadContract({
-    address: contractConfig.address,
+    address: contractAddress,
     abi: contractConfig.abi,
     functionName: "totalSupply",
   });
 
   // ✅ Read number minted by current address
   const { data: mintedByMe } = useReadContract({
-    address: contractConfig.address,
+    address: contractAddress,
     abi: contractConfig.abi,
     functionName: "mintedPerAddress",
     args: address ? [address] : undefined,
@@ -83,7 +86,7 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
           console.log("✅ Metadata uploaded:", metadataUrl);
 
           const tx = await writeContractAsync({
-            address: contractConfig.address,
+            address: contractAddress,
             abi: contractConfig.abi,
             functionName: "safeMint",
             args: [address, metadataUrl],
