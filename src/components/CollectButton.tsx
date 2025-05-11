@@ -1,20 +1,22 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { parseEther } from "viem";
 import {
   useAccount,
   useConnect,
   useWalletClient,
+  usePublicClient ,
   useWriteContract,
   useReadContract,
 } from "wagmi";
-import { parseEther } from "viem";
 import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 import { contractConfig } from "../config";
-import { uploadImageAndMetadata } from "../utils/uploadToIPFS";
+
+import { isUserRejectionError } from "../lib/errors";
 import { Button } from "./Button";
 import { AnimatedBorder } from "./AnimatedBorder";
-import { isUserRejectionError } from "../lib/errors";
-
-type Address = `0x${string}`;
+import { uploadImageAndMetadata } from "../utils/uploadToIPFS";
+import type { Address } from "viem";
+import type { Log } from "viem";
 
 interface CollectButtonProps {
   onCollect: () => void;
@@ -27,23 +29,26 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
   const { connect } = useConnect();
   const { data: walletClient } = useWalletClient();
   const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
 
   const [isLoadingTxData, setIsLoadingTxData] = useState(false);
   const isPending = isLoadingTxData;
-
+  
   const contractAddress: Address = contractConfig.address as Address;
 
+  // Read total supply
   const { data: totalMinted } = useReadContract({
     address: contractAddress,
     abi: contractConfig.abi,
     functionName: "totalSupply",
   });
 
+  // Read number minted by current address
   const { data: mintedByMe } = useReadContract({
     address: contractAddress,
     abi: contractConfig.abi,
     functionName: "mintedPerAddress",
-    args: address ? [address as Address] : [],
+    args: address ? [address] : undefined,
   });
 
   const mintLimitReached =
@@ -82,22 +87,22 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
           const metadataUrl = await uploadImageAndMetadata(blob);
           console.log("✅ Metadata uploaded:", metadataUrl);
 
-          const txHash = await writeContractAsync({
+          const tx = await writeContractAsync({
             address: contractAddress,
             abi: contractConfig.abi,
             functionName: "safeMint",
-            args: [address as Address, metadataUrl],
+            args: [address, metadataUrl],
             value: parseEther("0.001"),
           });
 
           console.log("✅ Mint sent. Waiting for confirmation...");
 
-          const receipt = await walletClient.waitForTransactionReceipt({
+          const receipt = await publicClient.waitForTransactionReceipt({
             hash: txHash,
           });
 
           const transferLog = receipt.logs.find(
-            (log) =>
+            (log: Log) =>
               log.topics?.[0] ===
               "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
           );
@@ -110,7 +115,6 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
             const nftUrl = `${baseUrl}/token/${contractAddress}?a=${tokenId}`;
             console.log(`✅ View NFT: ${nftUrl}`);
           }
-
           onCollect();
         } catch (err: unknown) {
           console.error("❌ Mint failed:", err);
@@ -133,7 +137,7 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
       <div className="pb-4 px-4 pt-2">
         {mintLimitReached && (
           <p className="text-sm text-center text-red-500 mb-2">
-            Minting limit reached. Follow me for news about upcoming mints!
+            Minting limit reached. Follow me to know when the next mint starts!
           </p>
         )}
 
