@@ -1,22 +1,22 @@
 import { useState } from "react";
-import { parseEther } from "viem";
 import {
   useAccount,
   useConnect,
   useWalletClient,
-  usePublicClient ,
   useWriteContract,
   useReadContract,
+  usePublicClient,
 } from "wagmi";
+import { parseEther } from "viem";
+import type { Log } from "viem";
 import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 import { contractConfig } from "../config";
-
-import { isUserRejectionError } from "../lib/errors";
+import { uploadImageAndMetadata } from "../utils/uploadToIPFS";
 import { Button } from "./Button";
 import { AnimatedBorder } from "./AnimatedBorder";
-import { uploadImageAndMetadata } from "../utils/uploadToIPFS";
-import type { Address } from "viem";
-import type { Log } from "viem";
+import { isUserRejectionError } from "../lib/errors";
+
+type Address = `0x${string}`;
 
 interface CollectButtonProps {
   onCollect: () => void;
@@ -28,27 +28,25 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
   const { isConnected, address } = useAccount();
   const { connect } = useConnect();
   const { data: walletClient } = useWalletClient();
-  const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
+  const { writeContractAsync } = useWriteContract();
 
   const [isLoadingTxData, setIsLoadingTxData] = useState(false);
   const isPending = isLoadingTxData;
-  
+
   const contractAddress: Address = contractConfig.address as Address;
 
-  // Read total supply
   const { data: totalMinted } = useReadContract({
     address: contractAddress,
     abi: contractConfig.abi,
     functionName: "totalSupply",
   });
 
-  // Read number minted by current address
   const { data: mintedByMe } = useReadContract({
     address: contractAddress,
     abi: contractConfig.abi,
     functionName: "mintedPerAddress",
-    args: address ? [address] : undefined,
+    args: address ? [address as Address] : [],
   });
 
   const mintLimitReached =
@@ -91,15 +89,13 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
             address: contractAddress,
             abi: contractConfig.abi,
             functionName: "safeMint",
-            args: [address, metadataUrl],
+            args: [address as Address, metadataUrl],
             value: parseEther("0.001"),
           });
 
           console.log("✅ Mint sent. Waiting for confirmation...");
 
-          const receipt = await publicClient.waitForTransactionReceipt({
-            hash: txHash,
-          });
+          const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
 
           const transferLog = receipt.logs.find(
             (log: Log) =>
@@ -111,10 +107,11 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
             const tokenIdHex = transferLog.topics[3];
             const tokenId = BigInt(tokenIdHex).toString();
 
-            const baseUrl = "https://sepolia.basescan.org"; 
+            const baseUrl = "https://sepiola.basescan.org"; // Change this if using another network
             const nftUrl = `${baseUrl}/token/${contractAddress}?a=${tokenId}`;
             console.log(`✅ View NFT: ${nftUrl}`);
           }
+
           onCollect();
         } catch (err: unknown) {
           console.error("❌ Mint failed:", err);
@@ -137,7 +134,7 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
       <div className="pb-4 px-4 pt-2">
         {mintLimitReached && (
           <p className="text-sm text-center text-red-500 mb-2">
-            Minting limit reached. Follow me to know when the next mint starts!
+            Minting limit reached — try again later!
           </p>
         )}
 
@@ -159,7 +156,7 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
             {mintLimitReached
               ? "Limit Reached"
               : !isConnected && isMinting
-              ? "Connect"
+              ? "Connect Wallet"
               : isMinting
               ? "Collect"
               : "Unavailable"}
