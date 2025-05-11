@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { parseEther } from "viem";
-import { useAccount, useConnect, useWalletClient } from "wagmi";
+import {
+  useAccount,
+  useConnect,
+  useWalletClient,
+  useWriteContract,
+  useReadContract,
+} from "wagmi";
 import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
-import { contract } from "../config"; 
+import { contractConfig } from "../config";
 
 import { isUserRejectionError } from "../lib/errors";
 import { Button } from "./Button";
@@ -19,9 +25,29 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
   const { isConnected, address } = useAccount();
   const { connect } = useConnect();
   const { data: walletClient } = useWalletClient();
+  const { writeContractAsync } = useWriteContract();
 
   const [isLoadingTxData, setIsLoadingTxData] = useState(false);
   const isPending = isLoadingTxData;
+
+  // ✅ Read total supply
+  const { data: totalMinted } = useReadContract({
+    address: contractConfig.address,
+    abi: contractConfig.abi,
+    functionName: "totalSupply",
+  });
+
+  // ✅ Read number minted by current address
+  const { data: mintedByMe } = useReadContract({
+    address: contractConfig.address,
+    abi: contractConfig.abi,
+    functionName: "mintedPerAddress",
+    args: address ? [address] : undefined,
+    enabled: !!address,
+  });
+
+  const mintLimitReached =
+    Number(totalMinted) >= 1000 || Number(mintedByMe) >= 10;
 
   const handleClick = async () => {
     try {
@@ -54,16 +80,17 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
 
         try {
           const metadataUrl = await uploadImageAndMetadata(blob);
-          console.log("Metadata uploaded:", metadataUrl);
+          console.log("✅ Metadata uploaded:", metadataUrl);
 
-          const result = await contract.write({
-            method: "function mint(address to, uint256 amount, string baseURI, bytes data) payable",
-            params: [address, 1n, metadataUrl, "0x"],
+          const tx = await writeContractAsync({
+            address: contractConfig.address,
+            abi: contractConfig.abi,
+            functionName: "safeMint",
+            args: [address, metadataUrl],
             value: parseEther("0.001"),
-            account: walletClient.account, // ✅ signer injected here
           });
 
-          console.log("✅ Mint transaction sent!", result);
+          console.log("✅ Mint sent:", tx);
           onCollect();
         } catch (err: unknown) {
           console.error("❌ Mint failed:", err);
@@ -84,15 +111,34 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
   return (
     <div className="sticky bottom-0 left-0 right-0 bg-card border-t border-border">
       <div className="pb-4 px-4 pt-2">
+        {mintLimitReached && (
+          <p className="text-sm text-center text-red-500 mb-2">
+            Minting limit reached. Follow me to know when the next mint starts!
+          </p>
+        )}
+
         {isPending ? (
           <AnimatedBorder>
-            <Button className="w-full relative bg-[var(--color-active)] text-[var(--color-active-foreground)]" disabled>
+            <Button
+              className="w-full relative bg-[var(--color-active)] text-[var(--color-active-foreground)]"
+              disabled
+            >
               {isMinting ? "Collecting..." : "Processing..."}
             </Button>
           </AnimatedBorder>
         ) : (
-          <Button className="w-full" onClick={handleClick} disabled={isPending}>
-            {!isConnected && isMinting ? "Connect Wallet" : isMinting ? "Collect" : "Unavailable"}
+          <Button
+            className="w-full"
+            onClick={handleClick}
+            disabled={isPending || mintLimitReached}
+          >
+            {mintLimitReached
+              ? "Limit Reached"
+              : !isConnected && isMinting
+              ? "Connect Wallet"
+              : isMinting
+              ? "Collect"
+              : "Unavailable"}
           </Button>
         )}
       </div>
