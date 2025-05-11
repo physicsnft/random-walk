@@ -182,6 +182,8 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
               ? "Collect"
               : "Unavailable"}
           </Button>
+          
+          <ConnectTest />
         )}
       </div>
     </div>

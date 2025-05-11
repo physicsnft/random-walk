@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { sdk } from '@farcaster/frame-sdk';
-import { CollectButton, ConnectTest } from "./components/CollectButton";
+import { CollectButton } from "./components/CollectButton";
 
 type Point = { x: number; y: number };
 
@@ -100,7 +100,6 @@ const App = () => {
           onCollect={() => console.log("Mint successful")}
           onError={(err: unknown) => console.error("Mint failed", err)}
         />
-        <ConnectTest />
       </div>
     </div>
   );
