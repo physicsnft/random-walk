@@ -38,6 +38,26 @@ export function ConnectTest() {
     }
   };
 
+  return (
+    <div style={{ marginTop: "2rem" }}>
+      <button
+        onClick={handleClick}
+        style={{
+          padding: "0.5rem 1rem",
+          background: "#333",
+          color: "#fff",
+          border: "none",
+          borderRadius: "8px",
+        }}
+      >
+        Connect MetaMask
+      </button>
+      {isPending && <p>Connecting...</p>}
+      {error && <p style={{ color: "red" }}>Error: {error.message}</p>}
+    </div>
+  );
+}
+
 export function CollectButton({ onCollect, onError, isMinting }: CollectButtonProps) {
   const { isConnected, address } = useAccount();
   const { connect } = useConnect();
