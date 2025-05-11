@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { sdk } from '@farcaster/frame-sdk';
-import { CollectButton } from "./components/CollectButton";
+import { CollectButton, ConnectTest } from "./components/CollectButton";
 
 type Point = { x: number; y: number };
 
