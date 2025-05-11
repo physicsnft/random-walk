@@ -34,6 +34,11 @@ const App = () => {
     setHueOffset(Math.floor(Math.random() * 360));
     setPoints(path);
   };
+  
+  // call it once the app is opened
+  useEffect(() => {
+    generateRandomWalk();
+  }, []);
 
   // Animate the walk
   useEffect(() => {
