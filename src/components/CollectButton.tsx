@@ -27,23 +27,27 @@ interface CollectButtonProps {
 
 
 export function ConnectTest() {
-  const { connect } = useConnect();
+  const { connect, connectors, error, isPending } = useConnect();
+
+  console.log("Available connectors:", connectors);
 
   return (
-    <button
-      onClick={() => connect({ connector: injected() })}
-      style={{
-        padding: "0.5rem 1rem",
-        background: "#333",
-        color: "#fff",
-        border: "none",
-        borderRadius: "8px",
-        marginTop: "1rem",
-        cursor: "pointer",
-      }}
-    >
-      Connect MetaMask
-    </button>
+    <div style={{ marginTop: "2rem" }}>
+      <button
+        onClick={() => connect({ connector: injected() })}
+        style={{
+          padding: "0.5rem 1rem",
+          background: "#333",
+          color: "#fff",
+          border: "none",
+          borderRadius: "8px",
+        }}
+      >
+        Connect MetaMask
+      </button>
+      {isPending && <p>Connecting...</p>}
+      {error && <p style={{ color: "red" }}>Error: {error.message}</p>}
+    </div>
   );
 }
 
