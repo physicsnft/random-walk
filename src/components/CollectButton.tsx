@@ -33,20 +33,19 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
   
   const contractAddress: Address = contractConfig.address as Address;
 
-  // ✅ Read total supply
+  // Read total supply
   const { data: totalMinted } = useReadContract({
     address: contractAddress,
     abi: contractConfig.abi,
     functionName: "totalSupply",
   });
 
-  // ✅ Read number minted by current address
+  // Read number minted by current address
   const { data: mintedByMe } = useReadContract({
     address: contractAddress,
     abi: contractConfig.abi,
     functionName: "mintedPerAddress",
     args: address ? [address] : undefined,
-    enabled: !!address,
   });
 
   const mintLimitReached =
@@ -138,7 +137,7 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
             {mintLimitReached
               ? "Limit Reached"
               : !isConnected && isMinting
-              ? "Connect Wallet"
+              ? "Connect"
               : isMinting
               ? "Collect"
               : "Unavailable"}
