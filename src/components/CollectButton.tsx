@@ -85,6 +85,11 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
           const metadataUrl = await uploadImageAndMetadata(blob);
           console.log("✅ Metadata uploaded:", metadataUrl);
 
+
+          console.log("address:", address);
+          console.log("walletClient:", walletClient);
+          console.log("publicClient:", publicClient);
+          
           const txHash = await writeContractAsync({
             address: contractAddress,
             abi: contractConfig.abi,
@@ -92,14 +97,13 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
             args: [address as Address, metadataUrl],
             value: parseEther("0.001"),
           });
+          
+          console.log("txHash returned:", txHash);
+          const found = await publicClient.getTransaction({ hash: txHash });
+          console.log("Was transaction found?", found);
 
           console.log("✅ Mint sent. Waiting for confirmation...");
           
-          console.log("txHash:", txHash);
-
-          const txInfo = await publicClient.getTransaction({ hash: txHash });
-          console.log("txInfo:", txInfo);
-
           const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
 
           const transferLog = receipt.logs.find(
