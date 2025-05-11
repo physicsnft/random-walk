@@ -131,6 +131,7 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
             functionName: "safeMint",
             args: [address as Address, metadataUrl],
             value: parseEther("0.001"),
+            chainId: contractConfig.chain.id,
           });
           
           console.log("txHash returned:", txHash);
