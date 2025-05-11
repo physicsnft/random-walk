@@ -100,6 +100,7 @@ const App = () => {
           onCollect={() => console.log("Mint successful")}
           onError={(err: unknown) => console.error("Mint failed", err)}
         />
+        <ConnectTest />
       </div>
     </div>
   );
