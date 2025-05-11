@@ -29,27 +29,14 @@ interface CollectButtonProps {
 export function ConnectTest() {
   const { connect, connectors, error, isPending } = useConnect();
 
-  console.log("Available connectors:", connectors);
-
-  return (
-    <div style={{ marginTop: "2rem" }}>
-      <button
-        onClick={() => connect({ connector: injected() })}
-        style={{
-          padding: "0.5rem 1rem",
-          background: "#333",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-        }}
-      >
-        Connect MetaMask
-      </button>
-      {isPending && <p>Connecting...</p>}
-      {error && <p style={{ color: "red" }}>Error: {error.message}</p>}
-    </div>
-  );
-}
+  const handleClick = () => {
+    const metamask = connectors.find((c) => c.id === "io.metamask");
+    if (metamask) {
+      connect({ connector: metamask });
+    } else {
+      alert("MetaMask not detected.");
+    }
+  };
 
 export function CollectButton({ onCollect, onError, isMinting }: CollectButtonProps) {
   const { isConnected, address } = useAccount();
