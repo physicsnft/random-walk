@@ -1,12 +1,12 @@
 import { useRef, useState, useEffect } from 'react';
 import { sdk } from '@farcaster/frame-sdk';
-import { CollectButton, ConnectTest, setHasMintedCurrentArtwork } from "./components/CollectButton";
+import { CollectButton, setHasMintedCurrentArtwork } from "./components/CollectButton";
 import { Button } from "./components/Button";
 import { AnimatedBorder } from "./components/AnimatedBorder";
 
 type Point = { x: number; y: number };
 
-const CANVAS_SIZE = 300;
+const CANVAS_SIZE = 2000;
 const STEPS = 2000;
 
 const App = () => {
@@ -28,7 +28,7 @@ const App = () => {
     const path: Point[] = [];
     let x = CANVAS_SIZE / 2;
     let y = CANVAS_SIZE / 2;
-    let scale = 1;
+    let scale = 10;
     for (let i = 0; i < STEPS; i++) {
       const angle = Math.random() * 2 * Math.PI;
       x += scale * Math.cos(angle) * 2;
@@ -69,6 +69,7 @@ const App = () => {
         const hue = (stepIndex / points.length) * 360;
         if (!ctx) return;
         ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+        ctx.lineWidth = 5;
         
         ctx.beginPath();
         ctx.moveTo(p1.x, p1.y);

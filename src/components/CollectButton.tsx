@@ -8,7 +8,6 @@ import {
   usePublicClient,
 } from "wagmi";
 import { parseEther } from "viem";
-import type { Log } from "viem";
 
 import { contractConfig } from "../config";
 import { uploadImageAndMetadata, exportCanvasAsBlob } from "../utils/uploadToIPFS";

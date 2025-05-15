@@ -6,7 +6,7 @@ const storage = new ThirdwebStorage({
   secretKey: import.meta.env.VITE_THIRDWEB_SECRET_KEY,
 });
 
-export function exportCanvasAsBlob(canvas: HTMLCanvasElement, scale = 2): Promise<Blob> {
+export function exportCanvasAsBlob(canvas: HTMLCanvasElement, scale = 1): Promise<Blob> {
   const exportCanvas = document.createElement("canvas");
   exportCanvas.width = canvas.width * scale;
   exportCanvas.height = canvas.height * scale;
