@@ -9,9 +9,9 @@ import {
 } from "wagmi";
 import { parseEther } from "viem";
 import type { Log } from "viem";
-//import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
+
 import { contractConfig } from "../config";
-import { uploadImageAndMetadata } from "../utils/uploadToIPFS";
+import { uploadImageAndMetadata, exportCanvasAsBlob } from "../utils/uploadToIPFS";
 import { Button } from "./Button";
 import { AnimatedBorder } from "./AnimatedBorder";
 import { isUserRejectionError } from "../lib/errors";
@@ -23,42 +23,17 @@ interface CollectButtonProps {
   onCollect: () => void;
   onError: (error: string | undefined) => void;
   isMinting: boolean;
+  hasMintedCurrentArtwork: boolean;
+  setHasMintedCurrentArtwork: (value: boolean) => void;
 }
 
-
-export function ConnectTest() {
-  const { connect, connectors, error, isPending } = useConnect();
-
-  const handleClick = () => {
-    const metamask = connectors.find((c) => c.id === "io.metamask");
-    if (metamask) {
-      connect({ connector: metamask });
-    } else {
-      alert("MetaMask not detected.");
-    }
-  };
-
-  return (
-    <div style={{ marginTop: "2rem" }}>
-      <button
-        onClick={handleClick}
-        style={{
-          padding: "0.5rem 1rem",
-          background: "#333",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-        }}
-      >
-        Connect MetaMask
-      </button>
-      {isPending && <p>Connecting...</p>}
-      {error && <p style={{ color: "red" }}>Error: {error.message}</p>}
-    </div>
-  );
-}
-
-export function CollectButton({ onCollect, onError, isMinting }: CollectButtonProps) {
+export function CollectButton({
+  onCollect,
+  onError,
+  isMinting,
+  hasMintedCurrentArtwork,
+  setHasMintedCurrentArtwork,
+}: CollectButtonProps) {
   const { isConnected, address } = useAccount();
   const { connect } = useConnect();
   const { data: walletClient } = useWalletClient();
@@ -66,32 +41,41 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
   const { writeContractAsync } = useWriteContract();
 
   const [isLoadingTxData, setIsLoadingTxData] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const isPending = isLoadingTxData;
 
   const contractAddress: Address = contractConfig.address as Address;
 
-  const { data: totalMinted } = useReadContract({
+  const {
+    data: totalMinted,
+    refetch: refetchTotal,
+  } = useReadContract({
     address: contractAddress,
     abi: contractConfig.abi,
     functionName: "totalSupply",
   });
 
-  const { data: mintedByMe } = useReadContract({
+  const {
+    data: mintedByMe,
+    refetch: refetchMine,
+  } = useReadContract({
     address: contractAddress,
     abi: contractConfig.abi,
     functionName: "mintedPerAddress",
     args: address ? [address as Address] : [],
+    enabled: !!address,
   });
 
-  const mintLimitReached =
-    Number(totalMinted) >= 1000 || Number(mintedByMe) >= 10;
+  const total = typeof totalMinted === "bigint" ? Number(totalMinted) : 0;
+  const mine = typeof mintedByMe === "bigint" ? Number(mintedByMe) : 0;
+  const mintProgress = Math.min(100, Math.floor((total / 1000) * 100));
+  const mintLimitReached = total >= 1000 || mine >= 10;
 
   const handleClick = async () => {
     try {
       if (!isMinting) return;
 
       if (!isConnected || !address) {
-        //connect({ connector: farcasterFrame() });
         connect({ connector: injected() });
         return;
       }
@@ -109,65 +93,54 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
 
       setIsLoadingTxData(true);
 
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          onError("Failed to get canvas image.");
-          setIsLoadingTxData(false);
-          return;
-        }
+      try {
+        const blob = await exportCanvasAsBlob(canvas);
+        const metadataUrl = await uploadImageAndMetadata(blob);
+        console.log("✅ Metadata uploaded:", metadataUrl);
 
-        try {
-          const metadataUrl = await uploadImageAndMetadata(blob);
-          console.log("✅ Metadata uploaded:", metadataUrl);
+        const txHash = await writeContractAsync({
+          address: contractAddress,
+          abi: contractConfig.abi,
+          functionName: "safeMint",
+          args: [address as Address, metadataUrl],
+          value: parseEther("0.001"),
+          chainId: contractConfig.chain.id,
+        });
 
-
-          console.log("address:", address);
-          console.log("walletClient:", walletClient);
-          console.log("publicClient:", publicClient);
-          
-          const txHash = await writeContractAsync({
-            address: contractAddress,
-            abi: contractConfig.abi,
-            functionName: "safeMint",
-            args: [address as Address, metadataUrl],
-            value: parseEther("0.001"),
-            chainId: contractConfig.chain.id,
-          });
-          
-          console.log("txHash returned:", txHash);
-          const found = await publicClient.getTransaction({ hash: txHash });
-          console.log("Was transaction found?", found);
-
-          console.log("✅ Mint sent. Waiting for confirmation...");
-          
-          const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-
-          const transferLog = receipt.logs.find(
-            (log: Log) =>
-              log.topics?.[0] ===
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-          );
-
-          if (transferLog && transferLog.topics.length === 4) {
-            const tokenIdHex = transferLog.topics[3];
-            const tokenId = BigInt(tokenIdHex).toString();
-
-            const baseUrl = "https://sepiola.basescan.org"; // Change this if using another network
-            const nftUrl = `${baseUrl}/token/${contractAddress}?a=${tokenId}`;
-            console.log(`✅ View NFT: ${nftUrl}`);
+        const waitWithRetry = async (txHash: string) => {
+          const maxRetries = 10;
+          const delay = 1500;
+          for (let i = 1; i <= maxRetries; i++) {
+            try {
+              return await publicClient.getTransactionReceipt({ hash: txHash });
+            } catch {
+              if (i === maxRetries) throw new Error("Transaction confirmation timeout");
+              await new Promise((res) => setTimeout(res, delay));
+            }
           }
+        };
 
-          onCollect();
-        } catch (err: unknown) {
-          console.error("❌ Mint failed:", err);
-          const msg = err instanceof Error ? err.message : "Transaction failed";
-          if (!isUserRejectionError(err)) {
-            onError(msg);
-          }
-        } finally {
-          setIsLoadingTxData(false);
-        }
-      }, "image/png");
+        setIsConfirming(true);
+        console.log("✅ Mint sent. Waiting for confirmation...");
+        const receipt = await waitWithRetry(txHash);
+        console.log("✅ Transaction confirmed:", receipt);
+        setHasMintedCurrentArtwork(true);
+
+        await refetchTotal();
+        await refetchMine();
+
+        const explorer = `https://base.testnet.thesuperscan.io/tx/${txHash}`;
+        console.log(`✅ View NFT: ${explorer}`);
+
+        onCollect();
+      } catch (err) {
+        console.error("❌ Mint failed:", err);
+        const msg = err instanceof Error ? err.message : "Transaction failed";
+        if (!isUserRejectionError(err)) onError(msg);
+      } finally {
+        setIsConfirming(false);
+        setIsLoadingTxData(false);
+      }
     } catch (err) {
       onError("Something unexpected went wrong.");
       setIsLoadingTxData(false);
@@ -175,20 +148,17 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
   };
 
   return (
-    <div className="sticky bottom-0 left-0 right-0 bg-card border-t border-border">
-      <div className="pb-4 px-4 pt-2">
+    <div className="bg-card p-2">
+      <div className="w-full max-w-md mx-auto">
         {mintLimitReached && (
           <p className="text-sm text-center text-red-500 mb-2">
-            Minting limit reached — try again later!
+            Minting limit reached
           </p>
         )}
 
         {isPending ? (
           <AnimatedBorder>
-            <Button
-              className="w-full relative bg-[var(--color-active)] text-[var(--color-active-foreground)]"
-              disabled
-            >
+            <Button className="w-full" disabled>
               {isMinting ? "Collecting..." : "Processing..."}
             </Button>
           </AnimatedBorder>
@@ -196,10 +166,12 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
           <Button
             className="w-full"
             onClick={handleClick}
-            disabled={isPending || mintLimitReached}
+            disabled={isPending || mintLimitReached || hasMintedCurrentArtwork}
           >
             {mintLimitReached
               ? "Limit Reached"
+              : hasMintedCurrentArtwork
+              ? "Already Minted"
               : !isConnected && isMinting
               ? "Connect Wallet"
               : isMinting
@@ -207,6 +179,25 @@ export function CollectButton({ onCollect, onError, isMinting }: CollectButtonPr
               : "Unavailable"}
           </Button>
         )}
+
+        {isConnected && isMinting && (
+          <p className="text-sm text-center text-muted-foreground mb-2">
+            This wallet minted {mine} of 10 artworks
+          </p>
+        )}
+
+        {/* Mint Progress Bar */}
+        <div className="mb-3">
+          <div className="w-full bg-gray-300 rounded-full h-2 overflow-hidden">
+            <div
+              className="bg-green-600 h-full transition-all duration-300"
+              style={{ width: `${mintProgress}%` }}
+            />
+          </div>
+          <p className="text-xs text-center mt-1 text-gray-600">
+            Total: {total} of 1000 artworks minted
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,26 @@ const storage = new ThirdwebStorage({
   secretKey: import.meta.env.VITE_THIRDWEB_SECRET_KEY,
 });
 
+export function exportCanvasAsBlob(canvas: HTMLCanvasElement, scale = 2): Promise<Blob> {
+  const exportCanvas = document.createElement("canvas");
+  exportCanvas.width = canvas.width * scale;
+  exportCanvas.height = canvas.height * scale;
+
+  const ctx = exportCanvas.getContext("2d");
+  if (!ctx) throw new Error("Failed to get canvas context");
+
+  // Upscale and draw
+  ctx.scale(scale, scale);
+  ctx.drawImage(canvas, 0, 0);
+
+  return new Promise((resolve, reject) => {
+    exportCanvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("Failed to convert canvas to blob"));
+    }, "image/png");
+  });
+}
+
 export async function uploadImageAndMetadata(blob: Blob): Promise<string> {
   try {
     // Use a File directly instead of Buffer

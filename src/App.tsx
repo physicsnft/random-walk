@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { sdk } from '@farcaster/frame-sdk';
-import { CollectButton, ConnectTest } from "./components/CollectButton";
+import { CollectButton, ConnectTest, setHasMintedCurrentArtwork } from "./components/CollectButton";
+import { Button } from "./components/Button";
+import { AnimatedBorder } from "./components/AnimatedBorder";
 
 type Point = { x: number; y: number };
 
@@ -11,7 +13,7 @@ const App = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [points, setPoints] = useState<Point[]>([]);
   const [hueOffset, setHueOffset] = useState(Math.floor(Math.random() * 360));
-  
+  const [hasMintedCurrentArtwork, setHasMintedCurrentArtwork] = useState(false);
   
   useEffect(() => {
     (async () => {
@@ -21,6 +23,8 @@ const App = () => {
 
   // Generate a new random walk
   const generateRandomWalk = () => {
+    setHasMintedCurrentArtwork(false);
+    
     const path: Point[] = [];
     let x = CANVAS_SIZE / 2;
     let y = CANVAS_SIZE / 2;
@@ -83,26 +87,37 @@ const App = () => {
     
   }, [points, hueOffset]);
 
-  return (
-    <div className="container">
-      <canvas
-        ref={canvasRef}
-        id="walkCanvas"
-        width={CANVAS_SIZE}
-        height={CANVAS_SIZE}
-      ></canvas>
-      <div className="button-row">
-        <button onClick={generateRandomWalk} className="app-button">
+  return (  
+  <div className="w-full max-w-sm flex flex-col">
+    <canvas
+      ref={canvasRef}
+      width={CANVAS_SIZE}
+      height={CANVAS_SIZE}
+      className="border border-gray-300 rounded shadow bg-white"
+    />
+    
+    <div className="bg-card p-4">
+    <div className="bg-card p-2">
+      <div className="w-full max-w-md mx-auto">
+        <Button onClick={generateRandomWalk} className="w-full">
           Generate
-        </button>
-        <CollectButton
-          isMinting={true}
-          onCollect={() => console.log("Mint successful")}
-          onError={(err: unknown) => console.error("Mint failed", err)}
-        />
-        <ConnectTest />
+        </Button>
       </div>
+      </div>
+
+      <CollectButton
+        isMinting={true}
+        onCollect={() => {
+          console.log("Mint successful");
+          setHasMintedCurrentArtwork(true);
+        }}
+        onError={(err) => console.error("Mint failed", err)}
+        hasMintedCurrentArtwork={hasMintedCurrentArtwork}
+        setHasMintedCurrentArtwork={setHasMintedCurrentArtwork}
+      />
     </div>
+  </div>
+
   );
 };
 
